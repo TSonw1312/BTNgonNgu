@@ -1,3 +1,5 @@
+//Truong Thanh Son - 2280602771
+
 // 1. Constructor
 function Product(id, name, price, quantity, category, isAvailable) {
     this.id = id;
