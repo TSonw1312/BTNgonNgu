@@ -3,13 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bài tập Javascript - Quản lý sản phẩm</title>
+    <title>Demo JSON Server</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .item { 
+            padding: 10px; 
+            border-bottom: 1px solid #ccc; 
+            margin-bottom: 5px;
+        }
+        /* Style cho item bị xóa mềm */
+        .deleted {
+            text-decoration: line-through;
+            opacity: 0.6;
+            background: #f9f9f9;
+        }
+        button { cursor: pointer; padding: 5px 10px; }
+        input { padding: 5px; width: 200px; }
+    </style>
 </head>
 <body>
-    <div style="font-family: Arial, sans-serif; text-align: center; margin-top: 50px;">
-        <h1>Bài tập Javascript - Quản lý sản phẩm</h1>
-        <p>Vui lòng nhấn phím <b>F12</b> (hoặc chuột phải -> Inspect) và chọn tab <b>Console</b> để xem kết quả.</p>
+    <h1>Quản lý sản phẩm</h1>
+
+    <div style="margin-bottom: 20px;">
+        <input type="text" id="txtName" placeholder="Nhập tên sản phẩm...">
+        <button onclick="handleAdd()">Thêm mới</button>
     </div>
+
+    <h3>Danh sách</h3>
+    <div id="list">Loading...</div>
 
     <script src="script.js"></script>
 </body>

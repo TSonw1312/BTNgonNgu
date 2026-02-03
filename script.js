@@ -1,69 +1,98 @@
 //Truong Thanh Son - 2280602771
 
-// 1. Constructor
-function Product(id, name, price, quantity, category, isAvailable) {
-    this.id = id;
-    this.name = name;
-    this.price = price;
-    this.quantity = quantity;
-    this.category = category;
-    this.isAvailable = isAvailable;
+
+const apiUrl = 'http://localhost:3000/products';
+
+// Lấy danh sách sản phẩm
+const getProducts = async () => {
+    const res = await fetch(apiUrl);
+    const data = await res.json();
+    render(data);
 }
 
-// 2. Init data
-const products = [
-    new Product(1, "iPhone 15 Pro Max", 35000000, 15, "Electronics", true),
-    new Product(2, "Samsung S24 Ultra", 32000000, 8, "Electronics", true),
-    new Product(3, "AirPods Pro 2", 6500000, 0, "Accessories", true),
-    new Product(4, "Apple Watch Ultra 2", 22000000, 5, "Accessories", true),
-    new Product(5, "Magic Mouse", 2500000, 12, "Accessories", false),
-    new Product(6, "MacBook Pro M3", 45000000, 3, "Electronics", true),
-    new Product(7, "iPad Air", 15000000, 0, "Electronics", false),
-    new Product(8, "USB-C Cable", 500000, 50, "Accessories", true)
-];
+// Hiển thị ra giao diện
+const render = (items) => {
+    const container = document.querySelector('#list');
+    container.innerHTML = ''; // Clear cũ
 
-// 3. Map lấy name và price
-const listNamePrice = products.map(p => ({
-    name: p.name,
-    price: p.price
-}));
-console.log("Câu 3:", listNamePrice);
+    items.forEach(item => {
+        // Check trạng thái để hiện nút tương ứng
+        const btnHtml = item.isDeleted 
+            ? `<button onclick="restore(${item.id})">Khôi phục</button>`
+            : `<button onclick="removeSoft(${item.id})">Xóa</button>`;
+        
+        // Thêm class nếu đã xóa
+        const className = item.isDeleted ? 'item deleted' : 'item';
 
-// 4. Filter hàng còn trong kho
-const inStockProducts = products.filter(p => p.quantity > 0);
-console.log("Câu 4 - Còn hàng:", inStockProducts);
-
-// 5. Some check giá > 30tr
-const hasExpensive = products.some(p => p.price > 30000000);
-console.log("Câu 5 - Có món > 30tr:", hasExpensive);
-
-// 6. Check tất cả Accessories có bán không
-const allAccessoriesActive = products
-    .filter(p => p.category === "Accessories")
-    .every(p => p.isAvailable);
-
-console.log("Câu 6 - Accessories đang bán hết:", allAccessoriesActive);
-
-// 7. Reduce tính tổng tiền
-const totalMoney = products.reduce((total, p) => total + (p.price * p.quantity), 0);
-console.log(`Câu 7 - Tổng kho: ${totalMoney.toLocaleString()} VNĐ`);
-
-// 8. For...of in danh sách
-console.log("\nCâu 8 - Duyệt mảng:");
-for (let p of products) {
-    console.log(`${p.name} - ${p.category} - ${p.isAvailable ? 'Đang bán' : 'Dừng bán'}`);
+        const html = `
+            <div class="${className}">
+                <b>${item.name}</b> (ID: ${item.id}) <br>
+                Giá: ${Number(item.price).toLocaleString()} đ
+                ${btnHtml}
+            </div>
+        `;
+        container.innerHTML += html;
+    });
 }
 
-// 9. For...in duyệt object
-console.log("\nCâu 9 - Duyệt thuộc tính (test sp đầu tiên):");
-let sampleProduct = products[0];
-for (let key in sampleProduct) {
-    console.log(`${key}: ${sampleProduct[key]}`);
+// Thêm mới (Auto ID = Max + 1)
+const handleAdd = async () => {
+    const name = document.querySelector('#txtName').value;
+    if (!name) return alert("Chưa nhập tên!");
+
+    // Lấy data về để tính ID
+    const res = await fetch(apiUrl);
+    const currentList = await res.json();
+    
+    // Tìm max ID
+    let maxId = 0;
+    if (currentList.length > 0) {
+        // Map ra mảng ID rồi tìm max
+        const ids = currentList.map(x => Number(x.id)); 
+        maxId = Math.max(...ids);
+    }
+
+    const newObj = {
+        id: (maxId + 1).toString(),
+        name: name,
+        price: 0,
+        quantity: 1,
+        category: "New",
+        isAvailable: true,
+        isDeleted: false
+    };
+
+    await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newObj)
+    });
+
+    document.querySelector('#txtName').value = '';
+    getProducts(); // Load lại
 }
 
-// 10. Filter + Map kết hợp
-const availableNames = products
-    .filter(p => p.isAvailable && p.quantity > 0)
-    .map(p => p.name);
+// Xóa mềm (sửa isDeleted -> true)
+const removeSoft = async (id) => {
+    if(!confirm("Xóa nhé?")) return;
 
-console.log("\nCâu 10 - Đang bán & còn hàng:", availableNames);
+    await fetch(`${apiUrl}/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isDeleted: true })
+    });
+    getProducts();
+}
+
+// Khôi phục lại
+const restore = async (id) => {
+    await fetch(`${apiUrl}/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isDeleted: false })
+    });
+    getProducts();
+}
+
+// Chạy luôn khi vào trang
+getProducts();
